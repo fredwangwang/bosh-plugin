@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
+	"path"
 )
 
 func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
@@ -28,7 +29,9 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 	r.POST("/plugins", func(c *gin.Context) {
 		file, _ := c.FormFile("file")
 		log.Println(file.Filename + " received")
-		tempdir, err := ioutil.TempDir("uploaded", "")
+
+		log.Println("creating tmp dir")
+		tempdir, err := ioutil.TempDir("", "uploaded")
 		if err != nil {
 			c.JSON(500, gin.H{
 				"error": err.Error(),
@@ -36,8 +39,8 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 			return
 		}
 
-		filename := tempdir + "uploaded.zip"
-
+		filename := path.Join(tempdir + "uploaded.zip")
+		log.Println("save uploaded file to " + filename)
 		if err := c.SaveUploadedFile(file, filename); err != nil {
 			c.JSON(500, gin.H{
 				"error": err.Error(),

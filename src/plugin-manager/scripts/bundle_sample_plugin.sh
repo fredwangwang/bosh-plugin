@@ -8,7 +8,8 @@ popd
 
 function package_sampleplugin() {
 pushd "$THIS_PROJECT"/src/plugin-manager/fixture/sampleplugin
-  zip -r testplugin.zip testplugin
+  rm testplugin.zip
+  zip -r -j testplugin.zip testplugin/*
 popd
 }
 

@@ -85,7 +85,7 @@ func (p Manager) AddPlugin(filename string) error {
 		Enabled:     false,
 	})
 
-	configFH, err := os.Open(p.configFilePath())
+	configFH, err := os.Create(p.configFilePath())
 	if err != nil {
 		return err
 	}
@@ -152,6 +152,7 @@ func getPluginInfo(s string) (Info, error) {
 	defer r.Close()
 
 	for _, f := range r.File {
+		log.Println(f.Name)
 		if f.Name != PLUGIN_INFO_FILE {
 			continue
 		}

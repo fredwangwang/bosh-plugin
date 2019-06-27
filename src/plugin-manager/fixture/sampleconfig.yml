@@ -1,5 +1,4 @@
----
-- name: "test plugin"
-  description: "description for test plugin"
-  location: "testplugin"
-  enabled: true
+- name: testplugin
+  description: description for test plugin!
+  location: testplugin
+  enabled: false
