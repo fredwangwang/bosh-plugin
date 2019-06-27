@@ -1,0 +1,6 @@
+---
+final_name: healthwatch
+blobstore:
+  provider: s3
+  options:
+    bucket_name: metrics-app-dev-blobs
