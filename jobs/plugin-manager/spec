@@ -1,0 +1,13 @@
+---
+name: plugin-manager
+
+templates:
+  bpm.yml.erb: config/bpm.yml
+
+packages:
+- plugin-manager
+
+properties:
+  sources:
+    description: "An array of sources matching the format described at https://github.com/pivotal/monitoring-indicator-protocol/wiki/Configuration-and-Patches"
+    default: []

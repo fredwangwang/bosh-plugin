@@ -1,8 +1,9 @@
 ---
-name: indicator-protocol
+name: plugin-manager
 
 dependencies:
 - golang-1.12-linux
 
 files:
-- github.com/pivotal/monitoring-indicator-protocol/**/*
+- plugin-manager/**/*
+

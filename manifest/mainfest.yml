@@ -1,0 +1,31 @@
+---
+name: bosh-plugin
+
+releases:
+- name: java
+  version: create
+  url: file://.
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+update:
+  canaries: 2
+  max_in_flight: 1
+  canary_watch_time: 5000-60000
+  update_watch_time: 5000-60000
+
+instance_groups:
+- name: bosh-plugin
+  azs: [z1]
+  instances: 1
+  networks:
+  - name: default
+  stemcell: ubuntu
+  vm_type: m3.large
+  jobs:
+  - name: plugin-manager
+    release: plugin-manager
+    properties: ~

@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -30,10 +31,12 @@ type State struct {
 type States []State
 
 func GetPluginManager(storage string, configFile string) Manager {
-	return Manager{
+	pm := Manager{
 		Storage:    storage,
 		ConfigFile: configFile,
 	}
+
+	return pm.init()
 }
 
 func (p Manager) ListPlugins() (States, error) {
@@ -110,6 +113,20 @@ func (p Manager) configFilePath() string {
 
 func (p Manager) pluginPath(pluginName string) string {
 	return path.Join(p.Storage, pluginName)
+}
+
+func (p Manager) init() Manager {
+	if _, err := os.Stat(p.configFilePath()); os.IsNotExist(err) {
+		log.Println("initializing " + p.ConfigFile)
+	}
+
+	fh, err := os.Create(p.configFilePath())
+	if err != nil {
+		panic(err)
+	}
+	fh.Close()
+
+	return p
 }
 
 type Application struct {

@@ -1,0 +1,21 @@
+---
+processes:
+- name: plugin-manager
+  executable: /var/vcap/packages/plugin-manager/plugin-manager
+  args:
+  #  - --port
+  #  - 10568
+  #  - --config
+  #  - /var/vcap/jobs/plugin-manager/config/sources.yml
+  env:
+    PORT: 8888
+    STORAGE: /var/vcap/store/plugin-manager
+    PLUGIN_CONFIG_FILE: 'config.yml'
+  limits:
+    memory: 1024M
+  persistent_disk: true
+  unsafe:
+    privileged: true
+    unrestricted_volumes:
+    - path: /tmp
+    - path: /var
