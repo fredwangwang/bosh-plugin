@@ -1,0 +1,10 @@
+---
+applications:
+- name: testplugin
+  description: "description for test plugin!"
+  command: ./helloworld-linux
+  memory: 512M
+  args:
+  - thisisanexample
+  env:
+    PORT: 4321
