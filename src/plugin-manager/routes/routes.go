@@ -2,7 +2,7 @@ package routes
 
 import (
 	"fmt"
-	"github.com/fredwangwang/bosh-plugin-manager/pluginmanager"
+	"github.com/fredwangwang/bosh-plugin/pluginmanager"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
@@ -63,7 +63,6 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 	r.DELETE("/plugins/:name", func(c *gin.Context) {
 		pluginName := c.Param("name")
 		if err := pm.DeletePlugin(pluginName); err != nil {
-			// TODO: this shouldn't be 500
 			c.JSON(500, gin.H{
 				"error": err.Error(),
 			})

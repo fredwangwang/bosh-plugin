@@ -8,15 +8,15 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"regexp"
-	"strings"
 )
 
 const PLUGIN_INFO_FILE = "plugin.yml"
 
 type Manager struct {
+	Job        string
+	Monit      string
 	Storage    string
 	ConfigFile string
 }
@@ -30,8 +30,10 @@ type State struct {
 
 type States []State
 
-func GetPluginManager(storage string, configFile string) Manager {
+func GetPluginManager(job string, monit string, storage string, configFile string) Manager {
 	pm := Manager{
+		Job:        job,
+		Monit:      monit,
 		Storage:    storage,
 		ConfigFile: configFile,
 	}
@@ -50,48 +52,6 @@ func (p Manager) ListPlugins() (States, error) {
 	}
 
 	return states, errors.Wrap(err, "failed to unmarshal config file")
-}
-
-func (p Manager) AddPlugin(filename string) error {
-	var err error
-
-	// TODO: handle dup with existing ones
-	states, err := p.ListPlugins()
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve existing plugins")
-	}
-
-	infos, err := getPluginInfo(filename)
-	if err != nil {
-		return err
-	}
-
-	info := infos.Applications[0]
-
-	location := strings.Join(strings.Fields(info.Name), "")
-	pluginPath := path.Join(p.Storage, location)
-
-	cmd := exec.Command("unzip", filename, "-d", pluginPath)
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "failed to unzip plugin")
-	}
-
-	// TODO: populate executor (BPM) context
-
-	states = append(states, State{
-		Name:        info.Name,
-		Description: info.Description,
-		Location:    location,
-		Enabled:     false,
-	})
-
-	configFH, err := os.Create(p.configFilePath())
-	if err != nil {
-		return err
-	}
-	defer configFH.Close()
-
-	return yaml.NewEncoder(configFH).Encode(states)
 }
 
 func (p Manager) DeletePlugin(pluginName string) error {
@@ -143,6 +103,7 @@ type Info struct {
 }
 
 func getPluginInfo(s string) (Info, error) {
+	log.Println("getting plugin info")
 	info := Info{}
 
 	r, err := zip.OpenReader(s)
@@ -173,11 +134,26 @@ func getPluginInfo(s string) (Info, error) {
 	return info, fmt.Errorf(PLUGIN_INFO_FILE + " does not exist in the plugin file")
 }
 
-var IsValidName = regexp.MustCompile(`^[a-zA-Z0-9_\- ]+$`).MatchString
+var IsValidName = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`).MatchString
 
 func ValidatePluginName(name string) error {
 	if !IsValidName(name) {
 		return fmt.Errorf("%s is not a valid plugin name, only 'a-z A-Z 0-9 _ -' are allowed", name)
 	}
 	return nil
+}
+
+func WriteYamlStructToFile(src interface{}, filename string) error {
+	outContent, err := yaml.Marshal(src)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(outContent)
+	return err
 }

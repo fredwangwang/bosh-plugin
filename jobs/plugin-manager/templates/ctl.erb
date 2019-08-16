@@ -1,0 +1,44 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/plugin-manager
+LOG_DIR=/var/vcap/sys/log/plugin-manager
+PIDFILE=${RUN_DIR}/pid
+
+export PORT="8888"
+export JOB="/var/vcap/jobs"
+export MONIT="/var/vcap/monit/job"
+export STORAGE="/var/vcap/store/plugin-manager"
+export PLUGIN_CONFIG_FILE="config.yml"
+export METRON_CA="lalala"
+export METRON_CERT="lalala"
+export METRON_KEY="lalala"
+export METRON_ADDR="asdf:23123"
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    mkdir "$STORAGE"
+
+    cd /var/vcap/packages/plugin-manager
+
+    exec ./plugin-manager \
+      >>  $LOG_DIR/plugin-manager.stdout.log \
+      2>> $LOG_DIR/plugin-manager.stderr.log
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

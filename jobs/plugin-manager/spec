@@ -3,6 +3,7 @@ name: plugin-manager
 
 templates:
   bpm.yml.erb: config/bpm.yml
+  ctl.erb: bin/ctl
 
 packages:
 - plugin-manager

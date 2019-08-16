@@ -1,0 +1,61 @@
+---
+name: bosh-plugin
+
+#addons:
+#- name: bpm
+#  jobs:
+#  - name: bpm
+#    release: bpm
+#  include:
+#    jobs:
+#    - name: plugin-manager
+#      release: plugin-manager
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+update:
+  canaries: 0
+  max_in_flight: 100%
+  canary_watch_time: 5000-60000
+  update_watch_time: 5000-60000
+
+instance_groups:
+- name: bosh-plugin
+  azs: [z1]
+  instances: 1
+  persistent_disk: 10240 # MB
+  networks:
+  - name: default
+  stemcell: default
+  vm_type: m3.large
+  jobs:
+  - name: plugin-manager
+    release: plugin-manager
+    properties: {}
+  - name: loggregator_agent
+    release: loggregator-agent
+    consumes:
+      doppler: { from: doppler, deployment: ((cf-deployment)) }
+    properties:
+      bosh_dns: true
+      disable_udp: true
+      loggregator:
+        tls:
+          ca_cert: ((loggregator_tls.ca))
+          agent:
+            key: ((loggregator_tls.private_key))
+            cert: ((loggregator_tls.certificate))
+  - name: bpm
+    release: bpm
+
+releases:
+- name: plugin-manager
+  version: create
+  url: file://.
+- name: bpm
+  version: latest
+- name: loggregator-agent
+  version: latest

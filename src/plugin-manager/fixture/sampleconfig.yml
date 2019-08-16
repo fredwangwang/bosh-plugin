@@ -1,4 +1,0 @@
-- name: testplugin
-  description: description for test plugin!
-  location: testplugin
-  enabled: false

@@ -1,5 +1,5 @@
 check process plugin-manager
-  with pidfile /var/vcap/sys/run/bpm/plugin-manager/plugin-manager.pid
-  start program "/var/vcap/jobs/bpm/bin/bpm start plugin-manager"
-  stop program "/var/vcap/jobs/bpm/bin/bpm stop plugin-manager" with timeout 60 seconds
+  with pidfile /var/vcap/sys/run/plugin-manager/pid
+  start program "/var/vcap/jobs/plugin-manager/bin/ctl start"
+  stop program "/var/vcap/jobs/plugin-manager/bin/ctl stop"
   group vcap
