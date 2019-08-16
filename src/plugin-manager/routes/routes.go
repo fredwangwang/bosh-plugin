@@ -60,6 +60,28 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		})
 	})
 
+	r.POST("/plugins/:name/enable", func(c *gin.Context) {
+		pluginName := c.Param("name")
+		if err := pm.EnablePlugin(pluginName); err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(200, fmt.Sprintf("%s enabled successfully", pluginName))
+		}
+	})
+
+	r.POST("/plugins/:name/disable", func(c *gin.Context) {
+		pluginName := c.Param("name")
+		if err := pm.DisablePlugin(pluginName); err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(200, fmt.Sprintf("%s disabled successfully", pluginName))
+		}
+	})
+
 	r.DELETE("/plugins/:name", func(c *gin.Context) {
 		pluginName := c.Param("name")
 		if err := pm.DeletePlugin(pluginName); err != nil {

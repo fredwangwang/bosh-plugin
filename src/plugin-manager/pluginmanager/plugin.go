@@ -54,25 +54,21 @@ func (p Manager) ListPlugins() (States, error) {
 	return states, errors.Wrap(err, "failed to unmarshal config file")
 }
 
-func (p Manager) DeletePlugin(pluginName string) error {
-	if _, err := os.Stat(p.pluginPath(pluginName)); os.IsNotExist(err) {
-		return fmt.Errorf("plugin %s does not exist", pluginName)
-	}
-
-	// TODO: stop the plugin
-	// TODO: cleanup executor context
-
-	return errors.Wrap(os.RemoveAll(p.pluginPath(pluginName)),
-		"failed to remove plugin content")
-}
-
 func (p Manager) configFilePath() string {
 	configFilePath := path.Join(p.Storage, p.ConfigFile)
 	return configFilePath
 }
 
-func (p Manager) pluginPath(pluginName string) string {
+func (p Manager) pluginStorePath(pluginName string) string {
 	return path.Join(p.Storage, pluginName)
+}
+
+func (p Manager) pluginJobPath(pluginName string) string {
+	return path.Join(p.Job, pluginName)
+}
+
+func (p Manager) pluginMonitPath(pluginName string) string {
+	return path.Join(p.Monit, fmt.Sprintf("%s.monitrc", pluginName))
 }
 
 func (p Manager) init() Manager {
@@ -80,7 +76,7 @@ func (p Manager) init() Manager {
 		log.Println("initializing " + p.ConfigFile)
 	}
 
-	fh, err := os.Create(p.configFilePath())
+	fh, err := os.OpenFile(p.configFilePath(), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}

@@ -3,28 +3,44 @@ package monit
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"log"
 	"os/exec"
+	"time"
 )
 
+func cmdRetry(numRetry int, name string, arg ...string) error {
+	var err error
+	for i := 0; i < numRetry; i++ {
+		cmd := exec.Command(name, arg...)
+		if err = cmd.Run(); err != nil {
+			log.Println(errors.Wrap(err, fmt.Sprintf("%s %v failed, retrying", name, arg)))
+			time.Sleep(5 * time.Second)
+		} else {
+			break
+		}
+	}
+	return err
+}
+
 func Reload() error {
-	cmd := exec.Command("/var/vcap/bosh/bin/monit", "reload")
-	if err := cmd.Run(); err != nil {
+	log.Println("monit reload")
+	if err := cmdRetry(3, "/var/vcap/bosh/bin/monit", "reload"); err != nil {
 		return errors.Wrap(err, "failed to reload monit config")
 	}
 	return nil
 }
 
 func Start(process string) error {
-	cmd := exec.Command("/var/vcap/bosh/bin/monit", "start", process)
-	if err := cmd.Run(); err != nil {
+	log.Println("monit start", process)
+	if err := cmdRetry(3, "/var/vcap/bosh/bin/monit", "start", process); err != nil {
 		return errors.Wrap(err, "failed to monit start "+process)
 	}
 	return nil
 }
 
 func Stop(process string) error {
-	cmd := exec.Command("/var/vcap/bosh/bin/monit", "stop", process)
-	if err := cmd.Run(); err != nil {
+	log.Println("monit stop", process)
+	if err := cmdRetry(3, "/var/vcap/bosh/bin/monit", "stop", process); err != nil {
 		return errors.Wrap(err, "failed to monit stop "+process)
 	}
 	return nil

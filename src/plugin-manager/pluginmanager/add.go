@@ -91,7 +91,7 @@ func (p Manager) AddPlugin(filename string) error {
 		Name:        info.Name,
 		Description: info.Description,
 		Location:    location,
-		Enabled:     false,
+		Enabled:     true,
 	})
 
 	return WriteYamlStructToFile(states, p.configFilePath())
