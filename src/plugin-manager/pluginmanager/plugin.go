@@ -26,6 +26,11 @@ type State struct {
 	Description string `yaml:"description"`
 	Location    string `yaml:"location"`
 	Enabled     bool   `yaml:"enabled"`
+
+	Env           map[string]string `yaml:"env"`
+	Arg           []string          `yaml:"arg"`
+	AdditionalEnv map[string]string `yaml:"additional-env"`
+	PendingEnv    map[string]string `yaml:"pending-env"`
 }
 
 type States []State

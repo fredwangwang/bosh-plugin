@@ -96,10 +96,13 @@ func (p Manager) AddPlugin(filename string) error {
 	}
 
 	states = append(states, State{
-		Name:        info.Name,
-		Description: info.Description,
-		Location:    location,
-		Enabled:     true,
+		Name:          info.Name,
+		Description:   info.Description,
+		Location:      location,
+		Enabled:       true,
+		Env:           info.Env,
+		Arg:           info.Args,
+		AdditionalEnv: METRON_FILES,
 	})
 
 	return WriteYamlStructToFile(states, p.configFilePath())
@@ -118,11 +121,18 @@ func (p Manager) copyMetronFiles(pluginName string) error {
 }
 
 func (p Manager) addMetronEnv(pluginName string, env map[string]string) map[string]string {
+	res := map[string]string{}
+
+	for k, v := range env {
+		res[k] = v
+	}
+
 	dstConfigPath := path.Join(p.pluginJobPath(pluginName), "config")
 	for k, v := range METRON_FILES {
-		env[k] = path.Join(dstConfigPath, v)
+		res[k] = path.Join(dstConfigPath, v)
 	}
-	return env
+
+	return res
 }
 
 var METRON_FILES = map[string]string{

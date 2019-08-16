@@ -16,7 +16,23 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		})
 	})
 
-	r.GET("/plugins", func(c *gin.Context) {
+	r.GET("/plugins", handleList(pm))
+
+	r.GET("/plugins/:name", handleGet(pm))
+
+	r.POST("/plugins", handleUpload(pm))
+
+	r.POST("/plugins/:name/enable", handleEnable(pm))
+
+	r.POST("/plugins/:name/disable", handleDisable(pm))
+
+	r.PATCH("/plugins/:name", handleConfig(pm))
+
+	r.DELETE("/plugins/:name", handleDelete(pm))
+}
+
+func handleList(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		if stats, err := pm.ListPlugins(); err != nil {
 			c.JSON(500, gin.H{
 				"error": err.Error(),
@@ -24,9 +40,24 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		} else {
 			c.JSON(200, stats)
 		}
-	})
+	}
+}
 
-	r.POST("/plugins", func(c *gin.Context) {
+func handleGet(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pluginName := c.Param("name")
+		if state, err := pm.GetPlugin(pluginName); err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(200, state)
+		}
+	}
+}
+
+func handleUpload(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		file, _ := c.FormFile("file")
 		log.Println(file.Filename + " received")
 
@@ -58,9 +89,11 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		c.JSON(200, gin.H{
 			"message": "plugin uploaded successfully",
 		})
-	})
+	}
+}
 
-	r.POST("/plugins/:name/enable", func(c *gin.Context) {
+func handleEnable(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		pluginName := c.Param("name")
 		if err := pm.EnablePlugin(pluginName); err != nil {
 			c.JSON(500, gin.H{
@@ -69,9 +102,11 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		} else {
 			c.JSON(200, fmt.Sprintf("%s enabled successfully", pluginName))
 		}
-	})
+	}
+}
 
-	r.POST("/plugins/:name/disable", func(c *gin.Context) {
+func handleDisable(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		pluginName := c.Param("name")
 		if err := pm.DisablePlugin(pluginName); err != nil {
 			c.JSON(500, gin.H{
@@ -80,9 +115,24 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		} else {
 			c.JSON(200, fmt.Sprintf("%s disabled successfully", pluginName))
 		}
-	})
+	}
+}
 
-	r.DELETE("/plugins/:name", func(c *gin.Context) {
+func handleConfig(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pluginName := c.Param("name")
+		if err := pm.ConfigPlugin(pluginName, c.Request.URL.Query()); err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(200, fmt.Sprintf("%s deleted successfully", pluginName))
+		}
+	}
+}
+
+func handleDelete(pm pluginmanager.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		pluginName := c.Param("name")
 		if err := pm.DeletePlugin(pluginName); err != nil {
 			c.JSON(500, gin.H{
@@ -91,7 +141,7 @@ func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
 		} else {
 			c.JSON(200, fmt.Sprintf("%s deleted successfully", pluginName))
 		}
-	})
+	}
 }
 
 // /var/vcap/store

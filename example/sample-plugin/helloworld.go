@@ -15,6 +15,11 @@ func main() {
 		panic("PORT is not provided")
 	}
 
+	greeting, ok := os.LookupEnv("GREETING")
+	if !ok {
+		greeting = "hello"
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello world!")
 	})
@@ -38,11 +43,11 @@ func main() {
 		log.Fatal("Could not connect to metron ", err)
 	}
 
-	gocron.Every(2).Seconds().Do(emitCounter, client)
+	gocron.Every(2).Seconds().Do(emitCounter, client, greeting)
 	<-gocron.Start()
 }
 
-func emitCounter(client *loggregator.IngressClient) {
+func emitCounter(client *loggregator.IngressClient, greeting string) {
 	client.EmitCounter("sample-plugin")
-	fmt.Println("hello")
+	log.Println(greeting)
 }
