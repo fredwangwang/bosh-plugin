@@ -27,19 +27,22 @@ func main() {
 		os.Getenv("METRON_KEY_PATH"),
 	)
 	if err != nil {
-		log.Fatal("Could not create TLS config", err)
+		log.Fatal("Could not create TLS config ", err)
 	}
 
 	client, err := loggregator.NewIngressClient(
 		tlsConfig,
 		loggregator.WithAddr("localhost:3458"),
 	)
+	if err != nil {
+		log.Fatal("Could not connect to metron ", err)
+	}
 
-	gocron.Every(2).Seconds().Do(emitCounder, client)
+	gocron.Every(2).Seconds().Do(emitCounter, client)
 	<-gocron.Start()
 }
 
-func emitCounder(client *loggregator.IngressClient) {
+func emitCounter(client *loggregator.IngressClient) {
 	client.EmitCounter("sample-plugin")
 	fmt.Println("hello")
 }

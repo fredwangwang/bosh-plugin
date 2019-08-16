@@ -83,6 +83,10 @@ func (p Manager) AddPlugin(filename string) error {
 		return err
 	}
 
+	if err := exec.Command("chgrp", "-R", "vcap", jobPath).Start(); err != nil {
+		return err
+	}
+
 	if err := monit.Reload(); err != nil {
 		return err
 	}
