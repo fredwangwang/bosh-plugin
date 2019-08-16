@@ -34,7 +34,13 @@ instance_groups:
   jobs:
   - name: plugin-manager
     release: plugin-manager
-    properties: {}
+    properties:
+      loggregator:
+        tls:
+          ca_cert: ((loggregator_tls.ca))
+          agent:
+            key: ((loggregator_tls.private_key))
+            cert: ((loggregator_tls.certificate))
   - name: loggregator_agent
     release: loggregator-agent
     consumes:

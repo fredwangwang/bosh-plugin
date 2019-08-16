@@ -2,6 +2,10 @@
 name: plugin-manager
 
 templates:
+  metron_ca_cert.pem.erb: config/metron_ca_cert.pem
+  metron_cert.pem.erb: config/metron_cert.pem
+  metron_cert.key.erb: config/metron_cert.key
+
   bpm.yml.erb: config/bpm.yml
   ctl.erb: bin/ctl
 
@@ -9,6 +13,13 @@ packages:
 - plugin-manager
 
 properties:
+  loggregator.tls.ca_cert:
+    description: "the ca certificate for loggregator agent"
+  loggregator.tls.agent.cert:
+    description: "the server certificate for loggregator agent"
+  loggregator.tls.agent.key:
+    description: "the server key for loggregator agent"
+
   sources:
     description: "An array of sources matching the format described at https://github.com/pivotal/monitoring-indicator-protocol/wiki/Configuration-and-Patches"
     default: []

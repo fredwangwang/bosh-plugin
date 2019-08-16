@@ -16,6 +16,7 @@ func cmdRetry(numRetry int, name string, arg ...string) error {
 			log.Println(errors.Wrap(err, fmt.Sprintf("%s %v failed, retrying", name, arg)))
 			time.Sleep(5 * time.Second)
 		} else {
+			time.Sleep(2 * time.Second)
 			break
 		}
 	}

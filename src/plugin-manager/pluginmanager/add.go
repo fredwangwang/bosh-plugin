@@ -51,7 +51,7 @@ func (p Manager) AddPlugin(filename string) error {
 				Name:       info.Name,
 				Executable: path.Join(jobPath, info.Command),
 				Args:       info.Args,
-				Env:        info.Env,
+				Env:        p.addMetronEnv(info.Name, info.Env),
 				Limits: map[string]string{
 					"memory": info.Memory,
 				},
@@ -60,6 +60,10 @@ func (p Manager) AddPlugin(filename string) error {
 	}
 
 	if err := WriteYamlStructToFile(bpmConfig, bpmConfigPath); err != nil {
+		return err
+	}
+
+	if err := p.copyMetronFiles(info.Name); err != nil {
 		return err
 	}
 
@@ -95,4 +99,30 @@ func (p Manager) AddPlugin(filename string) error {
 	})
 
 	return WriteYamlStructToFile(states, p.configFilePath())
+}
+
+func (p Manager) copyMetronFiles(pluginName string) error {
+	dstConfigPath := path.Join(p.pluginJobPath(pluginName), "config")
+	srcConfigPath := path.Join(p.Job, "plugin-manager", "config")
+
+	for _, file := range METRON_FILES {
+		if err := copy.Copy(path.Join(srcConfigPath, file), path.Join(dstConfigPath, file)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p Manager) addMetronEnv(pluginName string, env map[string]string) map[string]string {
+	dstConfigPath := path.Join(p.pluginJobPath(pluginName), "config")
+	for k, v := range METRON_FILES {
+		env[k] = path.Join(dstConfigPath, v)
+	}
+	return env
+}
+
+var METRON_FILES = map[string]string{
+	"METRON_CA_CERT_PATH": "metron_ca_cert.pem",
+	"METRON_CERT_PATH":    "metron_cert.pem",
+	"METRON_KEY_PATH":     "metron_cert.key",
 }
