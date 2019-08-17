@@ -48,6 +48,6 @@ func main() {
 }
 
 func emitCounter(client *loggregator.IngressClient, greeting string) {
-	client.EmitCounter("sample-plugin")
+	client.EmitCounter("sample-plugin", loggregator.WithEnvelopeTag("greeting", greeting))
 	log.Println(greeting)
 }

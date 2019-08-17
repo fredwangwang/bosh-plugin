@@ -46,6 +46,22 @@ func GetPluginManager(job string, monit string, storage string, configFile strin
 	return pm.init()
 }
 
+func GetPState(stats States, pluginName string) (*State, error) {
+	var pstat *State
+
+	for i, stat := range stats {
+		if stat.Name == pluginName {
+			pstat = &stats[i]
+			break
+		}
+	}
+
+	if pstat == nil {
+		return nil, fmt.Errorf("%s does not exist", pluginName)
+	}
+	return pstat, nil
+}
+
 func (p Manager) ListPlugins() (States, error) {
 	var states States
 	var err error
@@ -70,6 +86,10 @@ func (p Manager) pluginStorePath(pluginName string) string {
 
 func (p Manager) pluginJobPath(pluginName string) string {
 	return path.Join(p.Job, pluginName)
+}
+
+func (p Manager) pluginBPMPath(pluginName string) string {
+	return path.Join(p.Job, pluginName, "config", "bpm.yml")
 }
 
 func (p Manager) pluginMonitPath(pluginName string) string {
@@ -157,4 +177,12 @@ func WriteYamlStructToFile(src interface{}, filename string) error {
 
 	_, err = file.Write(outContent)
 	return err
+}
+
+func ReadYamlStructFromFile(filename string, dst interface{}) error {
+	bytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(bytes, dst)
 }

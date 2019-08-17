@@ -102,7 +102,8 @@ func (p Manager) AddPlugin(filename string) error {
 		Enabled:       true,
 		Env:           info.Env,
 		Arg:           info.Args,
-		AdditionalEnv: METRON_FILES,
+		AdditionalEnv: p.addMetronEnv(info.Name, nil),
+		PendingEnv:    map[string]string{},
 	})
 
 	return WriteYamlStructToFile(states, p.configFilePath())

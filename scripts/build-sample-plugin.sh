@@ -4,7 +4,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 
 function build_sampleplugin() {
 pushd "$ROOT"/example/sample-plugin
-  GOOS=linux go build -o helloworld-linux *.go
+  GOOS=linux go build -o main-linux *.go
 popd
 }
 

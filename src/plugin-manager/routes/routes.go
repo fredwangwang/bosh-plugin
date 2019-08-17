@@ -126,7 +126,7 @@ func handleConfig(pm pluginmanager.Manager) gin.HandlerFunc {
 				"error": err.Error(),
 			})
 		} else {
-			c.JSON(200, fmt.Sprintf("%s deleted successfully", pluginName))
+			c.JSON(200, fmt.Sprintf("config applied, need to disable/enable the plugin to see the effect"))
 		}
 	}
 }
@@ -143,5 +143,3 @@ func handleDelete(pm pluginmanager.Manager) gin.HandlerFunc {
 		}
 	}
 }
-
-// /var/vcap/store

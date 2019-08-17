@@ -9,6 +9,7 @@ pushd "$ROOT/src/plugin-manager"
   zip plugin.zip plugin-manager-linux
 
   bosh -d bosh-plugin scp plugin.zip bosh-plugin/0:/tmp/plugin.zip
+  bosh -d bosh-plugin ssh -c 'cd /tmp && unzip -o /tmp/plugin.zip && sudo monit stop plugin-manager && sudo mv plugin-manager-linux /var/vcap/packages/plugin-manager/plugin-manager && sleep 2 && sudo monit start plugin-manager'
   rm plugin.zip plugin-manager-linux
 popd
 
