@@ -93,11 +93,11 @@ func (p Manager) init() (Manager, error) {
 		log.Println("initializing " + p.ConfigFile)
 	}
 
-	fh, err := os.OpenFile(p.configFilePath(), os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		return p, err
+	if _, err := os.Stat(p.configFilePath()); os.IsNotExist(err) {
+		if err := WriteYamlStructToFile(States{}, p.configFilePath()); err != nil {
+			return p, err
+		}
 	}
-	fh.Close()
 
 	return p, p.bootstrapPlugin()
 }
