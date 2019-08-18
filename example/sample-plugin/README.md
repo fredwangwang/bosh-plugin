@@ -1,0 +1,1 @@
+Run `bosh-plugin/scripts/build-sample-plugin.sh` to build the plugin
