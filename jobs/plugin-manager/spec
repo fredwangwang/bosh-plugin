@@ -6,7 +6,6 @@ templates:
   metron_cert.pem.erb: config/metron_cert.pem
   metron_cert.key.erb: config/metron_cert.key
 
-  bpm.yml.erb: config/bpm.yml
   ctl.erb: bin/ctl
 
 packages:
@@ -19,6 +18,11 @@ properties:
     description: "the server certificate for loggregator agent"
   loggregator.tls.agent.key:
     description: "the server key for loggregator agent"
+
+  uaa.url:
+    description: "the uaa url"
+  uaa.scopes:
+    description: "allowed uaa scopes"
 
   sources:
     description: "An array of sources matching the format described at https://github.com/pivotal/monitoring-indicator-protocol/wiki/Configuration-and-Patches"

@@ -3,32 +3,37 @@ package routes
 import (
 	"fmt"
 	"github.com/fredwangwang/bosh-plugin/pluginmanager"
+	"github.com/fredwangwang/bosh-plugin/uaa"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"path"
 )
 
-func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager) {
+func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager, uaaUrl string, scopes []string) {
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "I am up!",
 		})
 	})
 
-	r.GET("/plugins", handleList(pm))
+	authed := r.Group("/api")
+	authed.Use(uaa.UAAJWTMiddleware(uaaUrl, scopes))
+	{
+		authed.GET("/plugins", handleList(pm))
 
-	r.GET("/plugins/:name", handleGet(pm))
+		authed.GET("/plugins/:name", handleGet(pm))
 
-	r.POST("/plugins", handleUpload(pm))
+		authed.POST("/plugins", handleUpload(pm))
 
-	r.POST("/plugins/:name/enable", handleEnable(pm))
+		authed.POST("/plugins/:name/enable", handleEnable(pm))
 
-	r.POST("/plugins/:name/disable", handleDisable(pm))
+		authed.POST("/plugins/:name/disable", handleDisable(pm))
 
-	r.PATCH("/plugins/:name", handleConfig(pm))
+		authed.PATCH("/plugins/:name", handleConfig(pm))
 
-	r.DELETE("/plugins/:name", handleDelete(pm))
+		authed.DELETE("/plugins/:name", handleDelete(pm))
+	}
 }
 
 func handleList(pm pluginmanager.Manager) gin.HandlerFunc {

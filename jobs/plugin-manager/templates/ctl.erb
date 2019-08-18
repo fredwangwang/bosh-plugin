@@ -9,10 +9,9 @@ export JOB="/var/vcap/jobs"
 export MONIT="/var/vcap/monit/job"
 export STORAGE="/var/vcap/store/plugin-manager"
 export PLUGIN_CONFIG_FILE="config.yml"
-export METRON_CA="lalala"
-export METRON_CERT="lalala"
-export METRON_KEY="lalala"
-export METRON_ADDR="asdf:23123"
+
+export ALLOWED_SCOPES="<%= p('uaa.scopes') %>"
+export UAA_URL="<%= p('uaa.url') %>"
 
 case $1 in
 

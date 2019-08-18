@@ -15,10 +15,8 @@ type HostInfo struct {
 	Storage      string `env:"STORAGE, required"`
 	PluginConfig string `env:"PLUGIN_CONFIG_FILE, required"`
 
-	MetronCA   string `env:"METRON_CA, required"`
-	MetronCert string `env:"METRON_CERT, required"`
-	MetronKey  string `env:"METRON_KEY, required"`
-	MetronAddr string `env:"METRON_ADDR, required"`
+	UAAUrl string   `env:"UAA_URL, required"`
+	Scopes []string `env:"ALLOWED_SCOPES, required"`
 }
 
 func main() {
@@ -26,16 +24,11 @@ func main() {
 	if err := envstruct.Load(&info); err != nil {
 		panic(err)
 	}
-	//
-	//metron, err := loggregator.NewIngressClient(info.MetronCA, info.MetronCert, info.MetronKey, info.MetronAddr)
-	//if err != nil {
-	//	panic(err)
-	//}
 
 	pm := pluginmanager.GetPluginManager(info.Job, info.Monit, info.Storage, info.PluginConfig)
 
 	r := gin.Default()
-	routes.RegistRoutes(r, pm)
+	routes.RegistRoutes(r, pm, info.UAAUrl, info.Scopes)
 
 	done := make(chan bool)
 
