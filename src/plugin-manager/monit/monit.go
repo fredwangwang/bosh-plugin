@@ -3,6 +3,7 @@ package monit
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"log"
 	"os/exec"
 	"time"
@@ -49,6 +50,10 @@ func Stop(process string) error {
 
 func Monitrc(process string) string {
 	return fmt.Sprintf(monitTmpl, process, process, process, process, process)
+}
+
+func CreateMonitrcFor(process string, monitrcPath string) error {
+	return ioutil.WriteFile(monitrcPath, []byte(Monitrc(process)), 0644)
 }
 
 var monitTmpl = `check process %s

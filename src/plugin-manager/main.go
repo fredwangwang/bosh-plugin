@@ -25,7 +25,10 @@ func main() {
 		panic(err)
 	}
 
-	pm := pluginmanager.GetPluginManager(info.Job, info.Monit, info.Storage, info.PluginConfig)
+	pm, err := pluginmanager.GetPluginManager(info.Job, info.Monit, info.Storage, info.PluginConfig)
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 	routes.RegistRoutes(r, pm, info.UAAUrl, info.Scopes)

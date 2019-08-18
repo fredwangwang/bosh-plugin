@@ -3,6 +3,7 @@ package pluginmanager
 import (
 	"github.com/fredwangwang/bosh-plugin/bpm"
 	"github.com/fredwangwang/bosh-plugin/monit"
+	"github.com/otiai10/copy"
 )
 
 func (p Manager) EnablePlugin(pluginName string) error {
@@ -17,7 +18,7 @@ func (p Manager) EnablePlugin(pluginName string) error {
 
 	// already enabled, nothing to do
 	if pstat.Enabled == true {
-		return nil
+		return monit.Start(pluginName)
 	}
 
 	pstat.Enabled = true
@@ -30,7 +31,11 @@ func (p Manager) EnablePlugin(pluginName string) error {
 	}
 	bpmConfig.Processes[0].Env = mergeMaps(pstat.Env, pstat.AdditionalEnv)
 
-	if err := WriteYamlStructToFile(bpmConfig, p.pluginBPMPath(pluginName)); err != nil {
+	if err := WriteYamlStructToFile(bpmConfig, p.pluginBPMPathInStore(pluginName)); err != nil {
+		return err
+	}
+
+	if err := copy.Copy(p.pluginBPMPathInStore(pluginName), p.pluginBPMPath(pluginName)); err != nil {
 		return err
 	}
 

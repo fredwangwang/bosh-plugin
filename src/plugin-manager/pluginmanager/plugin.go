@@ -3,6 +3,7 @@ package pluginmanager
 import (
 	"archive/zip"
 	"fmt"
+	"github.com/fredwangwang/bosh-plugin/monit"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -35,7 +36,7 @@ type State struct {
 
 type States []State
 
-func GetPluginManager(job string, monit string, storage string, configFile string) Manager {
+func GetPluginManager(job string, monit string, storage string, configFile string) (Manager, error) {
 	pm := Manager{
 		Job:        job,
 		Monit:      monit,
@@ -62,19 +63,6 @@ func GetPState(stats States, pluginName string) (*State, error) {
 	return pstat, nil
 }
 
-func (p Manager) ListPlugins() (States, error) {
-	var states States
-	var err error
-
-	if configBytes, err := ioutil.ReadFile(p.configFilePath()); err != nil {
-		return states, errors.Wrap(err, "failed to read config file")
-	} else {
-		err = yaml.Unmarshal(configBytes, &states)
-	}
-
-	return states, errors.Wrap(err, "failed to unmarshal config file")
-}
-
 func (p Manager) configFilePath() string {
 	configFilePath := path.Join(p.Storage, p.ConfigFile)
 	return configFilePath
@@ -92,22 +80,65 @@ func (p Manager) pluginBPMPath(pluginName string) string {
 	return path.Join(p.Job, pluginName, "config", "bpm.yml")
 }
 
+func (p Manager) pluginBPMPathInStore(pluginName string) string {
+	return path.Join(p.Storage, pluginName, "config", "bpm.yml")
+}
+
 func (p Manager) pluginMonitPath(pluginName string) string {
 	return path.Join(p.Monit, fmt.Sprintf("%s.monitrc", pluginName))
 }
 
-func (p Manager) init() Manager {
+func (p Manager) init() (Manager, error) {
 	if _, err := os.Stat(p.configFilePath()); os.IsNotExist(err) {
 		log.Println("initializing " + p.ConfigFile)
 	}
 
 	fh, err := os.OpenFile(p.configFilePath(), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		panic(err)
+		return p, err
 	}
 	fh.Close()
 
-	return p
+	return p, p.bootstrapPlugin()
+}
+
+func (p Manager) bootstrapPlugin() error {
+	stats, err := p.ListPlugins()
+	if err != nil {
+		return err
+	}
+
+	// recreate monitrc files for plugin. In case of deployment update, the custom monitrc files inserted by
+	// plugin manager will be cleared.
+	for _, stat := range stats {
+		if err := monit.CreateMonitrcFor(stat.Name, p.pluginMonitPath(stat.Name)); err != nil {
+			return err
+		}
+	}
+
+	// recreate jobs folder for plugin. In case of stemcell update, the custom job folder will be destroyed.
+	for _, stat := range stats {
+		if _, err := os.Stat(p.pluginJobPath(stat.Name)); os.IsNotExist(err) {
+			if err := p.copyPluginFromStorageToJob(stat.Name); err != nil {
+				return err
+			}
+		}
+	}
+
+	// reload monit to pick up any monitrc updates
+	if err := monit.Reload(); err != nil {
+		return err
+	}
+
+	// start all enabled plugins
+	// TODO: parallelize for efficiency
+	for _, stat := range stats {
+		if err := monit.Start(stat.Name); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type Application struct {

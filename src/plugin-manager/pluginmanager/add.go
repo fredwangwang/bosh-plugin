@@ -1,16 +1,13 @@
 package pluginmanager
 
 import (
-	"fmt"
 	"github.com/fredwangwang/bosh-plugin/bpm"
 	"github.com/fredwangwang/bosh-plugin/monit"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 )
 
 func (p Manager) AddPlugin(filename string) error {
@@ -29,19 +26,18 @@ func (p Manager) AddPlugin(filename string) error {
 
 	info := infos.Applications[0]
 
-	location := strings.Join(strings.Fields(info.Name), "")
-	pluginPath := path.Join(p.Storage, location)
+	pluginPath := p.pluginStorePath(info.Name)
 
 	cmd := exec.Command("unzip", filename, "-d", pluginPath)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrap(err, "failed to unzip plugin")
 	}
 
-	// create the folder/file structure required by BPM: /var/vcap/jobs/JOBNAME/config/bpm.yml
-	jobPath := path.Join(p.Job, info.Name)
-	configPath := path.Join(jobPath, "config")
-	bpmConfigPath := path.Join(configPath, "bpm.yml")
-	if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
+	// create the folder/file structure required by BPM in the plugin storage path
+	// this will be copy over to the correct job path in the following step
+	configPathInStore := path.Join(pluginPath, "config")
+	bpmConfigPathInStore := path.Join(configPathInStore, "bpm.yml")
+	if err := os.MkdirAll(configPathInStore, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -49,7 +45,7 @@ func (p Manager) AddPlugin(filename string) error {
 		Processes: []bpm.Process{
 			{
 				Name:       info.Name,
-				Executable: path.Join(jobPath, info.Command),
+				Executable: path.Join(p.pluginJobPath(info.Name), info.Command),
 				Args:       info.Args,
 				Env:        p.addMetronEnv(info.Name, info.Env),
 				Limits: map[string]string{
@@ -59,31 +55,20 @@ func (p Manager) AddPlugin(filename string) error {
 		},
 	}
 
-	if err := WriteYamlStructToFile(bpmConfig, bpmConfigPath); err != nil {
+	if err := WriteYamlStructToFile(bpmConfig, bpmConfigPathInStore); err != nil {
 		return err
 	}
 
-	if err := p.copyMetronFiles(info.Name); err != nil {
+	if err := p.copyMetronFilesFor(info.Name, configPathInStore); err != nil {
+		return err
+	}
+
+	if err := p.copyPluginFromStorageToJob(info.Name); err != nil {
 		return err
 	}
 
 	// create monit stub so monit are aware of the process
-	if err := ioutil.WriteFile(
-		path.Join(p.Monit, fmt.Sprintf("%s.monitrc", info.Name)),
-		[]byte(monit.Monitrc(info.Name)),
-		0644,
-	); err != nil {
-		return err
-	}
-
-	entrySrcPath := path.Join(pluginPath, info.Command)
-	entryDstPath := path.Join(jobPath, info.Command)
-
-	if err := copy.Copy(entrySrcPath, entryDstPath); err != nil {
-		return err
-	}
-
-	if err := exec.Command("chgrp", "-R", "vcap", jobPath).Start(); err != nil {
+	if err := monit.CreateMonitrcFor(info.Name, p.pluginMonitPath(info.Name)); err != nil {
 		return err
 	}
 
@@ -98,7 +83,7 @@ func (p Manager) AddPlugin(filename string) error {
 	states = append(states, State{
 		Name:          info.Name,
 		Description:   info.Description,
-		Location:      location,
+		Location:      info.Name,
 		Enabled:       true,
 		Env:           info.Env,
 		Arg:           info.Args,
@@ -109,8 +94,19 @@ func (p Manager) AddPlugin(filename string) error {
 	return WriteYamlStructToFile(states, p.configFilePath())
 }
 
-func (p Manager) copyMetronFiles(pluginName string) error {
-	dstConfigPath := path.Join(p.pluginJobPath(pluginName), "config")
+func (p Manager) copyPluginFromStorageToJob(pluginName string) error {
+
+	if err := copy.Copy(p.pluginStorePath(pluginName), p.pluginJobPath(pluginName)); err != nil {
+		return err
+	}
+
+	if err := exec.Command("chgrp", "-R", "vcap", p.pluginJobPath(pluginName)).Start(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p Manager) copyMetronFilesFor(pluginName string, dstConfigPath string) error {
 	srcConfigPath := path.Join(p.Job, "plugin-manager", "config")
 
 	for _, file := range METRON_FILES {
