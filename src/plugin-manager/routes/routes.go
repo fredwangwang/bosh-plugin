@@ -11,28 +11,28 @@ import (
 )
 
 func RegistRoutes(r *gin.Engine, pm pluginmanager.Manager, uaaUrl string, scopes []string) {
-	r.GET("/healthz", func(c *gin.Context) {
+	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "I am up!",
 		})
 	})
 
-	authed := r.Group("/api")
-	authed.Use(uaa.UAAJWTMiddleware(uaaUrl, scopes))
+	auth := r.Group("/api/v1")
+	auth.Use(uaa.UAAJWTMiddleware(uaaUrl, scopes))
 	{
-		authed.GET("/plugins", handleList(pm))
+		auth.GET("/plugins", handleList(pm))
 
-		authed.GET("/plugins/:name", handleGet(pm))
+		auth.GET("/plugins/:name", handleGet(pm))
 
-		authed.POST("/plugins", handleUpload(pm))
+		auth.POST("/plugins", handleUpload(pm))
 
-		authed.POST("/plugins/:name/enable", handleEnable(pm))
+		auth.POST("/plugins/:name/enable", handleEnable(pm))
 
-		authed.POST("/plugins/:name/disable", handleDisable(pm))
+		auth.POST("/plugins/:name/disable", handleDisable(pm))
 
-		authed.PATCH("/plugins/:name", handleConfig(pm))
+		auth.PATCH("/plugins/:name", handleConfig(pm))
 
-		authed.DELETE("/plugins/:name", handleDelete(pm))
+		auth.DELETE("/plugins/:name", handleDelete(pm))
 	}
 }
 
