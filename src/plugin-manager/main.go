@@ -15,6 +15,9 @@ type HostInfo struct {
 	Storage      string `env:"STORAGE, required"`
 	PluginConfig string `env:"PLUGIN_CONFIG_FILE, required"`
 
+	ServerCertPath string `env:"SERVER_CERT_PATH, required"`
+	ServerKeyPath  string `env:"SERVER_KEY_PATH, required"`
+
 	UAAUrl string   `env:"UAA_URL, required"`
 	Scopes []string `env:"ALLOWED_SCOPES, required"`
 }
@@ -36,7 +39,7 @@ func main() {
 	done := make(chan bool)
 
 	go func() {
-		r.Run(":" + info.Port)
+		r.RunTLS(":"+info.Port, info.ServerCertPath, info.ServerKeyPath)
 		done <- true
 	}()
 

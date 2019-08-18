@@ -6,6 +6,9 @@ templates:
   metron_cert.pem.erb: config/metron_cert.pem
   metron_cert.key.erb: config/metron_cert.key
 
+  server.pem.erb: config/server.pem
+  server.key.erb: config/server.key
+
   ctl.erb: bin/ctl
 
 packages:
@@ -18,6 +21,11 @@ properties:
     description: "the server certificate for loggregator agent"
   loggregator.tls.agent.key:
     description: "the server key for loggregator agent"
+
+  server.cert:
+    description: "cert"
+  server.key:
+    description: "key"
 
   uaa.url:
     description: "the uaa url"

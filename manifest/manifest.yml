@@ -35,6 +35,9 @@ instance_groups:
   - name: plugin-manager
     release: plugin-manager
     properties:
+      server:
+        cert: ((server.cert))
+        key: ((server.key))
       uaa:
         url: ((uaa.url))
         scopes: "cloud_controller.admin,healthwatch.admin"

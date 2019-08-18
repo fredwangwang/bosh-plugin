@@ -10,6 +10,9 @@ export MONIT="/var/vcap/monit/job"
 export STORAGE="/var/vcap/store/plugin-manager"
 export PLUGIN_CONFIG_FILE="config.yml"
 
+export SERVER_CERT_PATH="/var/vcap/jobs/plugin-manager/config/server.pem"
+export SERVER_KEY_PATH="/var/vcap/jobs/plugin-manager/config/server.key"
+
 export ALLOWED_SCOPES="<%= p('uaa.scopes') %>"
 export UAA_URL="<%= p('uaa.url') %>"
 
