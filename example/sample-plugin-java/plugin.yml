@@ -1,0 +1,11 @@
+---
+applications:
+- name: sample-plugin-java
+  description: "description for sample plugin!"
+  command: jdk8u222-b10-jre/bin/java
+  memory: 512M
+  args:
+  - -jar
+  - bosh-plugin-sample.jar
+  env:
+    PORT: 5432

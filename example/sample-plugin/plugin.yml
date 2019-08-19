@@ -2,7 +2,7 @@
 applications:
 - name: sample-plugin
   description: "description for sample plugin!"
-  command: ./main-linux
+  command: main-linux
   memory: 512M
   args:
   - thisisanexample
